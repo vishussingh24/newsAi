@@ -1,0 +1,38 @@
+{
+  "name": "ai-news-aggregator",
+  "version": "1.0.0",
+  "description": "Backend system that scrapes, LLM-verifies, and emails news updates for OpenAI, Google, Anthropic, and X.com",
+  "main": "src/app.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/app.js",
+    "dev": "nodemon src/app.js"
+  },
+  "keywords": [
+    "news",
+    "aggregator",
+    "ai",
+    "llm",
+    "validation",
+    "nodemailer",
+    "postgres",
+    "docker"
+  ],
+  "author": "User",
+  "license": "ISC",
+  "dependencies": {
+    "@google/generative-ai": "^0.11.0",
+    "axios": "^1.7.2",
+    "cheerio": "^1.0.0-rc.12",
+    "dotenv": "^16.4.5",
+    "node-cron": "^3.0.3",
+    "nodemailer": "^6.9.13",
+    "openai": "^4.47.1",
+    "pg": "^8.11.5",
+    "rss-parser": "^3.13.0",
+    "winston": "^3.13.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.2"
+  }
+}
