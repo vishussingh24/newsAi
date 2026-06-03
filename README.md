@@ -1,6 +1,13 @@
-# AI News Aggregator & LLM Validator
+# newsAI: Intelligent AI News Aggregator & LLM Validator
 
-A containerized Node.js backend system that aggregates AI news from platforms like OpenAI, Google, Anthropic, and X.com, filters and evaluates them using a Large Language Model (LLM) for validity and quality, stores them in a PostgreSQL database, and sends curated email updates to a designated email address.
+> **If you are into the field of AI, you must try this!**
+
+In a fast-paced ecosystem where breakthrough research, models, and industry updates are announced daily, information overload is a real challenge. **newsAI** is an automated, self-healing pipeline built to solve this. It systematically aggregates AI updates from primary sources, filters out the noise using Large Language Models (LLMs) with structured verification, and delivers a clean, high-signal intelligence digest directly to your inbox.
+
+### Why newsAI was built
+- **Noise Elimination**: Most AI news feeds are cluttered with financial speculation, generic articles, and duplicate content. newsAI evaluates every piece of news using advanced LLM reasoning to ensure relevance.
+- **Automation-First**: Operates on modular scheduler cron instances, ensuring hands-off polling, processing, and dispatching.
+- **Developer-Friendly & Robust**: Containerized, pre-seeded, and includes local mock LLM fallbacks for smooth offline testing.
 
 ---
 
@@ -64,7 +71,7 @@ news-aggregator/
             └── openai.js        # OpenAI GPT API integration
         └── notification/
             ├── email.js         # Nodemailer setup and template compiler
-            └── templates/
+            ├── templates/
                 └── digest.html  # HTML email layout
     └── utils/
         └── helpers.js           # Shared utility functions
@@ -72,53 +79,22 @@ news-aggregator/
 
 ---
 
-## 3. Database Schema
+## 3. Database
 
-The system uses three core tables inside PostgreSQL to manage data flow:
+The system uses three primary tables inside PostgreSQL to manage data flow. Below are the key components of the database model:
 
-```sql
--- Initial Schema Definition
+### Tables & Relationships
+1. **`sources`**: Tracks the ingestion targets (e.g., OpenAI, Google AI, Anthropic, X.com).
+   - *Key Columns*: `id`, `name` (unique), `url`, `is_active`, `last_polled_at`.
+2. **`raw_articles`**: Stores all crawled/scraped articles to prevent duplicate processing.
+   - *Key Columns*: `id`, `source_id` (foreign key to `sources`), `external_id` (unique hash of url/id), `title`, `url`, `published_at`, `raw_content`, `status` (`pending`, `processed`, `failed`).
+3. **`processed_articles`**: Stores the output of LLM evaluations and notification tracking.
+   - *Key Columns*: `id`, `raw_article_id` (foreign key to `raw_articles`), `is_valid` (boolean), `relevance_score` (0-100), `summary` (text), `key_takeaways` (JSONB list of points), `category`, `email_sent`, `email_sent_at`.
 
--- Table 1: Ingestion Sources
-CREATE TABLE IF NOT EXISTS sources (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(50) NOT NULL UNIQUE, -- e.g., 'openai', 'google', 'anthropic', 'twitter'
-    url VARCHAR(255) NOT NULL,
-    is_active BOOLEAN DEFAULT TRUE,
-    last_polled_at TIMESTAMP WITH TIME ZONE
-);
-
--- Table 2: Raw Scraped News (to prevent processing duplication)
-CREATE TABLE IF NOT EXISTS raw_articles (
-    id SERIAL PRIMARY KEY,
-    source_id INT REFERENCES sources(id) ON DELETE CASCADE,
-    external_id VARCHAR(255) UNIQUE, -- Unique hash of URL or API post ID
-    title VARCHAR(500) NOT NULL,
-    url VARCHAR(1000) NOT NULL,
-    published_at TIMESTAMP WITH TIME ZONE,
-    raw_content TEXT,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    status VARCHAR(20) DEFAULT 'pending' -- 'pending', 'processed', 'failed'
-);
-
--- Table 3: LLM Verified & Summarized Articles
-CREATE TABLE IF NOT EXISTS processed_articles (
-    id SERIAL PRIMARY KEY,
-    raw_article_id INT REFERENCES raw_articles(id) ON DELETE CASCADE,
-    is_valid BOOLEAN NOT NULL DEFAULT FALSE,
-    relevance_score INT CHECK (relevance_score BETWEEN 0 AND 100),
-    summary TEXT,
-    key_takeaways JSONB, -- Array of bullet points
-    category VARCHAR(100), -- e.g., 'LLM Release', 'Hardware', 'Corporate'
-    verified_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    email_sent BOOLEAN DEFAULT FALSE,
-    email_sent_at TIMESTAMP WITH TIME ZONE
-);
-
--- Indexes for performance
-CREATE INDEX IF NOT EXISTS idx_raw_articles_status ON raw_articles(status);
-CREATE INDEX IF NOT EXISTS idx_processed_articles_sent ON processed_articles(email_sent) WHERE is_valid = TRUE;
-```
+### Core Database Features
+*   **Duplicate Prevention**: An index on `external_id` utilizes `ON CONFLICT DO NOTHING` logic to guarantee that no article is scraped or processed twice.
+*   **Seeded Sources**: The schema contains initial seeds for primary platforms (OpenAI, Google, Anthropic, X.com) to start working instantly.
+*   **Optimized Performance**: Indexes are placed on `raw_articles(status)` and `processed_articles(email_sent)` to optimize scheduler polling times.
 
 ---
 
@@ -132,171 +108,100 @@ Each scraped article undergoes an LLM review before being queued for notificatio
    - **Relevance Score**: Rates importance from 0 (insignificant) to 100 (groundbreaking news like GPT-5 launch).
    - **Summary**: A concise 2-sentence summary.
    - **Key Takeaways**: 3 clear bullet points summarizing impact.
+   - **Category**: Classifies content (e.g., 'LLM Release', 'Hardware', 'Research').
 
 ---
 
-## 5. Environment Configuration (`.env.example`)
+## 5. Environment Configuration
 
-```env
-# Application Details
-PORT=3000
-NODE_ENV=development
+The application is configured using a `.env` file. A template is provided in `.env.example`:
 
-# Database Configuration
-DB_HOST=postgres
-DB_PORT=5432
-DB_USER=news_user
-DB_PASSWORD=news_password
-DB_NAME=news_db
-
-# LLM Providers Configuration
-LLM_PROVIDER=gemini # 'gemini' or 'openai'
-GEMINI_API_KEY=your_gemini_api_key_here
-OPENAI_API_KEY=your_openai_api_key_here
-
-# Notification Settings
-EMAIL_HOST=smtp.gmail.com
-EMAIL_PORT=587
-EMAIL_USER=your_sending_email@gmail.com
-EMAIL_PASS=your_app_specific_password_here
-TARGET_EMAIL=your_personal_email@domain.com
-
-# Scraper Schedules (Cron Patterns)
-SCRAPE_CRON="*/30 * * * *" # Every 30 minutes
-LLM_VERIFY_CRON="*/10 * * * *" # Every 10 minutes
-EMAIL_DIGEST_CRON="0 9 * * *" # Daily at 9:00 AM
-```
+| Variable | Description | Default / Example |
+| :--- | :--- | :--- |
+| `PORT` | Local port for health diagnostics dashboard | `3000` |
+| `NODE_ENV` | Environment mode | `development` |
+| `DB_HOST` | Database host name (`postgres` for Docker, `localhost` for Local) | `postgres` |
+| `DB_PORT` | PostgreSQL port | `5432` |
+| `DB_USER` | PostgreSQL user | `news_user` |
+| `DB_PASSWORD` | PostgreSQL password | `news_password` |
+| `DB_NAME` | PostgreSQL database name | `news_db` |
+| `LLM_PROVIDER` | Selected LLM provider (`gemini` or `openai`) | `gemini` |
+| `GEMINI_API_KEY` | Google Gemini API Key | `your_api_key` |
+| `OPENAI_API_KEY` | OpenAI API Key (if selected) | `your_api_key` |
+| `EMAIL_HOST` | SMTP server host | `smtp.gmail.com` |
+| `EMAIL_PORT` | SMTP port | `587` |
+| `EMAIL_USER` | SMTP username | `your_email@gmail.com` |
+| `EMAIL_PASS` | App-specific email password | `your_app_pass` |
+| `TARGET_EMAIL` | Destination email for digests | `recipient@domain.com` |
+| `SCRAPE_CRON` | Cron interval for scraping feeds | `*/30 * * * *` (30 mins) |
+| `LLM_VERIFY_CRON`| Cron interval for validating articles | `*/10 * * * *` (10 mins) |
+| `EMAIL_DIGEST_CRON`| Cron interval for sending newsletters | `0 9 * * *` (9:00 AM) |
 
 ---
 
 ## 6. Dockerization
 
-The project uses Docker and Docker Compose to ensure a reproducible environment with isolated Node.js and PostgreSQL runtimes.
+The project uses Docker and Docker Compose to containerize the application and database, guaranteeing a seamless, isolated environment.
 
-### docker-compose.yml
-```yaml
-version: '3.8'
+### Multi-Container Setup
+1.  **`postgres` Service**: Uses `postgres:15-alpine` to host the database. It mounts a persistent docker volume (`postgres_data`) so data survives container restarts, and maps the `init.sql` script to auto-initialize the database schema.
+2.  **`app` Service**: Builds the Node.js runtime using the local `Dockerfile` (using `node:20-alpine`). It is configured to run `npm start` (or nodemon) and mounts the code for live hot-reloading in development.
 
-services:
-  postgres:
-    image: postgres:15-alpine
-    container_name: news_postgres
-    restart: always
-    environment:
-      POSTGRES_DB: ${DB_NAME:-news_db}
-      POSTGRES_USER: ${DB_USER:-news_user}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-news_password}
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./src/database/init.sql:/docker-entrypoint-initdb.d/init.sql
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-news_user} -d ${DB_NAME:-news_db}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+### Useful Docker Commands
 
-  app:
-    build: .
-    container_name: news_backend
-    restart: always
-    ports:
-      - "${PORT:-3000}:${PORT:-3000}"
-    environment:
-      - NODE_ENV=${NODE_ENV:-development}
-      - DB_HOST=postgres
-      - DB_PORT=5432
-      - DB_USER=${DB_USER}
-      - DB_PASSWORD=${DB_PASSWORD}
-      - DB_NAME=${DB_NAME}
-      - LLM_PROVIDER=${LLM_PROVIDER}
-      - GEMINI_API_KEY=${GEMINI_API_KEY}
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - EMAIL_HOST=${EMAIL_HOST}
-      - EMAIL_PORT=${EMAIL_PORT}
-      - EMAIL_USER=${EMAIL_USER}
-      - EMAIL_PASS=${EMAIL_PASS}
-      - TARGET_EMAIL=${TARGET_EMAIL}
-      - SCRAPE_CRON=${SCRAPE_CRON}
-      - LLM_VERIFY_CRON=${LLM_VERIFY_CRON}
-      - EMAIL_DIGEST_CRON=${EMAIL_DIGEST_CRON}
-    depends_on:
-      postgres:
-        condition: service_healthy
-    volumes:
-      - .:/usr/src/app
-      - /usr/src/app/node_modules
-
-volumes:
-  postgres_data:
-```
+*   **Build and Start Containers (detached mode)**:
+    ```bash
+    docker compose up -d --build
+    ```
+*   **Check Services Status**:
+    ```bash
+    docker compose ps
+    ```
+*   **View Real-Time Application Logs**:
+    ```bash
+    docker compose logs -f app
+    ```
+*   **Stop and Remove Containers (keeping data)**:
+    ```bash
+    docker compose down
+    ```
+*   **Stop and Wipe Containers (deleting database data)**:
+    ```bash
+    docker compose down -v
+    ```
 
 ---
 
-## 7. Project Setup & Execution Commands
+## 7. How to Run Locally (Without Docker)
+
+If you prefer to run the aggregator directly on your host machine:
 
 ### Prerequisites
-- Node.js installed locally (v18+)
-- Docker and Docker Compose installed and running
+*   Node.js (v20 or higher)
+*   A running PostgreSQL instance on your machine
 
-### Step 1: Initialize Project Files
-Run these commands in your terminal to initialize files and directories:
-
-```bash
-# Create directory structure
-mkdir -p src/config src/database src/jobs src/services/ingestion src/services/llm src/services/notification/templates src/utils
-
-# Initialize package.json
-npm init -y
-```
-
-### Step 2: Install Required Dependencies
-```bash
-# Core Dependencies
-npm install pg dotenv node-cron nodemailer axios cheerio rss-parser @google/generative-ai openai winston
-
-# Development Dependencies
-npm install --save-dev nodemon
-```
-
-### Step 3: Local Launch with Docker
-1. Create a `.env` file copying the values from `.env.example`.
-2. Spin up the containers:
-   ```bash
-   docker-compose up -d --build
-   ```
-3. To view application logs:
-   ```bash
-   docker-compose logs -f app
-   ```
-
----
-
-## 8. Implementation Steps & Execution Plan
-
-### Phase 1: Setup & Environment Validation
-- Configure basic folder structures, `package.json`, `.env` loaders, and Docker configuration files.
-- Write `src/config/env.js` to assert the existence of required environment credentials (API keys, SMTP configs, Database settings).
-
-### Phase 2: Database Initialization
-- Launch PostgreSQL inside docker-compose.
-- Initialize database schemas and verify connection logic inside `src/config/database.js`.
-
-### Phase 3: Scraping & Ingestion Modules
-- Implement independent crawlers/RSS readers in `src/services/ingestion/`:
-  - RSS parser targeting blogs of OpenAI, Google AI, and Anthropic.
-  - Social platform (X.com) crawler interface.
-- Implement deduplication logic checking the `raw_articles` unique constraint.
-
-### Phase 4: LLM Verification Integration
-- Setup LLM client matching user choice (Gemini/OpenAI).
-- Design system prompts utilizing JSON output parameters.
-- Verify evaluation parameters by executing mock news payloads.
-
-### Phase 5: Notification Service
-- Build clean custom HTML emails displaying verified news in dynamic grids.
-- Implement SMTP/Nodemailer sending client with error recovery logic.
-
-### Phase 6: Scheduler & Operations
-- Coordinate ingestion, evaluation, and dispatch schedules under a robust Node-Cron worker suite inside the Node process.
+### Setup Steps
+1.  **Install dependencies**:
+    ```bash
+    npm install
+    ```
+2.  **Create Environment File**:
+    Copy `.env.example` into a new `.env` file:
+    ```bash
+    cp .env.example .env
+    ```
+3.  **Adjust DB configuration in `.env`**:
+    Change `DB_HOST` from `postgres` to `localhost` (or your local Postgres host IP) and verify that `DB_USER`, `DB_PASSWORD`, and `DB_NAME` match your local Postgres setup.
+4.  **Initialize Database Schema**:
+    Connect to your local PostgreSQL instance and execute the commands inside `src/database/init.sql` to set up the tables and seeds.
+5.  **Start the Application**:
+    *   **Development Mode (with auto-reload)**:
+        ```bash
+        npm run dev
+        ```
+    *   **Production Mode**:
+        ```bash
+        npm start
+        ```
+6.  **Verify Health Dashboard**:
+    Open `http://localhost:3000/health` in your browser to verify that the app is connected to the database and schedules are initialized.
