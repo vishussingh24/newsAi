@@ -1,4 +1,4 @@
-# newsAI: Intelligent AI News Aggregator & LLM Validator
+# NEWS AI: AI News Aggregator 
 
 > **If you are into the field of AI, you must try this!**
 
