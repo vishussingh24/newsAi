@@ -36,37 +36,37 @@ function runMockLLMValidator(title, source, content) {
   const lowerContent = content.toLowerCase();
   
   // Basic heuristic keyword check
-  const isAIKeyWord = ['gpt', 'claude', 'gemini', 'sora', 'tpu', 'llm', 'safety', 'deepmind', 'ai', 'model', 'weights'].some(word => 
+  const isSpaceKeyWord = ['space', 'telescope', 'satellite', 'exoplanet', 'nasa', 'esa', 'hubble', 'jwst', 'orbit', 'lunar', 'black hole', 'astronomy', 'cosmic', 'astrophysics', 'discovery'].some(word => 
     lowerTitle.includes(word) || lowerContent.includes(word)
   );
 
-  const isSpeculativeOrSpam = ['crypto', 'stock price', 'stocks', 'financial results', 'quarterly earnings'].some(word =>
+  const isSpeculativeOrSpam = ['crypto', 'stock price', 'stocks', 'financial results', 'quarterly earnings', 'scifi', 'sci-fi'].some(word =>
     lowerTitle.includes(word)
   );
 
-  const isValid = isAIKeyWord && !isSpeculativeOrSpam;
+  const isValid = isSpaceKeyWord && !isSpeculativeOrSpam;
   let relevanceScore = 50;
-  let category = 'Research';
+  let category = 'Space Mission';
 
-  if (lowerTitle.includes('gpt-5') || lowerTitle.includes('claude 4') || lowerTitle.includes('gemini 2')) {
+  if (lowerTitle.includes('jwst') || lowerTitle.includes('james webb') || lowerTitle.includes('black hole')) {
     relevanceScore = 95;
-    category = 'LLM Release';
-  } else if (lowerTitle.includes('safety') || lowerTitle.includes('council')) {
-    relevanceScore = 75;
-    category = 'Safety & Regulation';
-  } else if (lowerTitle.includes('tpu') || lowerTitle.includes('gpu')) {
-    relevanceScore = 80;
-    category = 'Hardware';
+    category = 'Discovery';
+  } else if (lowerTitle.includes('satellite') || lowerTitle.includes('orbit')) {
+    relevanceScore = 85;
+    category = 'Satellite & Hardware';
+  } else if (lowerTitle.includes('hubble') || lowerTitle.includes('euclid') || lowerTitle.includes('telescope')) {
+    relevanceScore = 90;
+    category = 'Telescope Observation';
   }
 
   return {
     isValid,
     relevanceScore,
-    summary: `Local Mock Summary: "${title}" posted by ${source}. This article discusses key changes and technological advancements in the field of AI.`,
+    summary: `Reports from ${source} detail: "${title}". This development provides significant insights into active space science, orbital monitoring, and astronomical discoveries.`,
     keyTakeaways: [
-      `Key Takeaway 1: Discusses the impact of the release from ${source}.`,
-      `Key Takeaway 2: Shows the industry convergence around high scale model training parameters.`,
-      `Key Takeaway 3: Highlights active developer integration vectors.`
+      `Details the scientific significance of observations reported by ${source}.`,
+      `Sheds light on new data points or satellite orbits related to the target event.`,
+      `Provides valuable insights for the international astronomical and planetary research communities.`
     ],
     category
   };

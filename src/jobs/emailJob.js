@@ -1,6 +1,6 @@
 import logger from '../config/logger.js';
 import { queries } from '../database/queries.js';
-import { sendNewsEmailDigest } from '../services/notification/email.js';
+import { sendIndividualNewsEmailPlaintext } from '../services/notification/email.js';
 
 let isRunning = false;
 
@@ -21,15 +21,19 @@ export async function executeEmailJob() {
       return;
     }
 
-    logger.info('[SCHEDULER] Found %d unsent verified articles. Initiating email dispatch...', unsentArticles.length);
+    logger.info('[SCHEDULER] Found %d unsent verified articles. Initiating individual plain-text dispatches...', unsentArticles.length);
 
-    const sent = await sendNewsEmailDigest(unsentArticles);
-    
-    if (sent) {
-      const articleIds = unsentArticles.map(a => a.id);
-      await queries.markArticlesAsEmailed(articleIds);
-      logger.info('[SCHEDULER] Dispatched email update containing %d articles and updated databases.', unsentArticles.length);
+    for (const article of unsentArticles) {
+      const sent = await sendIndividualNewsEmailPlaintext(article);
+      if (sent) {
+        await queries.markArticlesAsEmailed([article.id]);
+        logger.info('[SCHEDULER] Successfully processed and marked article ID %d as emailed.', article.id);
+      }
+      // Introduce a 1-second delay between email dispatches
+      await new Promise(resolve => setTimeout(resolve, 1000));
     }
+    
+    logger.info('[SCHEDULER] Completed all individual email dispatches.');
   } catch (error) {
     logger.error('[SCHEDULER] Email dispatch job cycle failed: %s', error.message);
   } finally {

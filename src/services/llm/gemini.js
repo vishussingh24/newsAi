@@ -28,7 +28,7 @@ export async function validateWithGemini(articleTitle, sourceName, articleConten
     });
 
     const prompt = `
-You are an expert AI news validator and summarizer. Analyze this news article to see if it is high-quality, actual AI industry/technology news, and output a structured JSON response.
+You are an expert cosmic and space news validator and summarizer. Analyze this news article to see if it is high-quality, actual astronomy, astrophysics, satellite, or space discovery news, and output a structured JSON response.
 
 ARTICLE INFORMATION:
 - Source: ${sourceName}
@@ -36,11 +36,11 @@ ARTICLE INFORMATION:
 - Content Snippet: ${articleContent}
 
 CRITERIA:
-- isValid: Boolean. True only if it is real, direct AI news (releases, research papers, major GPU hardware events, or AI model announcements). Set False for speculative finance, spam, duplicate content, or generic tech news.
-- relevanceScore: Number (0 to 100). Rate the significance (e.g., major model releases are 90+, small bugfixes are 20-30).
+- isValid: Boolean. Set True ONLY if the article is about space discoveries, astrophysics, planetary science, active space science satellites (e.g., Hubble, JWST, Euclid, Sentinel), space exploration missions, or telescope findings. Set False for generic terrestrial news, financial/commercial reports, science fiction, spam, duplicate content, or unrelated tech/business news.
+- relevanceScore: Number (0 to 100). Rate the significance (e.g., groundbreaking telescope discoveries or major planetary findings are 90+, minor schedule updates are 20-30).
 - summary: A clear, concise 2-sentence summary of the news.
-- keyTakeaways: An array of exactly 3 bullet points showing key impacts or tech specifications.
-- category: A single string categorizing the news (e.g. 'LLM Release', 'Hardware', 'Safety & Regulation', 'Corporate', 'Research').
+- keyTakeaways: An array of exactly 3 bullet points showing key scientific impacts, tech specs of satellites, or discovery details.
+- category: A single string categorizing the news (e.g. 'Discovery', 'Satellite & Hardware', 'Telescope Observation', 'Planetary Science', 'Space Mission').
 
 Return ONLY a JSON object matching this schema:
 {

@@ -40,8 +40,9 @@ CREATE INDEX IF NOT EXISTS idx_processed_articles_sent ON processed_articles(ema
 
 -- Seed initial sources
 INSERT INTO sources (name, url) VALUES
-('openai', 'https://openai.com/news/'),
-('google', 'https://blog.google/technology/ai/'),
-('anthropic', 'https://www.anthropic.com/news'),
-('x', 'https://x.com')
+('nasa', 'https://www.nasa.gov/news-release/feed/'),
+('space_com', 'https://www.space.com/feeds/all'),
+('esa', 'https://www.esa.int/rssfeed/Our_Activities/Space_Science'),
+('universe_today', 'https://www.universetoday.com/feed/')
 ON CONFLICT (name) DO NOTHING;
+

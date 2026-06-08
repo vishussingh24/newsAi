@@ -1,16 +1,17 @@
 import logger from '../../config/logger.js';
 import { queries } from '../../database/queries.js';
-import { fetchOpenAINews } from './openai.js';
-import { fetchGoogleNews } from './google.js';
-import { fetchAnthropicNews } from './anthropic.js';
-import { fetchTwitterNews } from './twitter.js';
+import { fetchNasaNews } from './nasa.js';
+import { fetchSpaceComNews } from './spacecom.js';
+import { fetchEsaNews } from './esa.js';
+import { fetchUniverseTodayNews } from './universetoday.js';
 
 const scrapers = {
-  openai: fetchOpenAINews,
-  google: fetchGoogleNews,
-  anthropic: fetchAnthropicNews,
-  x: fetchTwitterNews
+  nasa: fetchNasaNews,
+  space_com: fetchSpaceComNews,
+  esa: fetchEsaNews,
+  universe_today: fetchUniverseTodayNews
 };
+
 
 export async function runIngestionPipeline() {
   logger.info('Starting Ingestion Pipeline...');

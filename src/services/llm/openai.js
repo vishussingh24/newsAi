@@ -25,7 +25,7 @@ export async function validateWithOpenAI(articleTitle, sourceName, articleConten
       messages: [
         {
           role: 'system',
-          content: 'You are an AI news auditor. Your job is to classify if news is valid AI news, score its significance, and return structured JSON. The output must strictly follow this JSON structure: { "isValid": boolean, "relevanceScore": number, "summary": "string", "keyTakeaways": ["string", "string", "string"], "category": "string" }'
+          content: 'You are a cosmic and space news auditor. Your job is to classify if news is valid space discovery, satellite, or astronomy news, score its significance, and return structured JSON. Set isValid to true only for articles about space science, telescopes, exoplanets, astrophysics, active satellites, or space agency missions. The output must strictly follow this JSON structure: { "isValid": boolean, "relevanceScore": number, "summary": "string", "keyTakeaways": ["string", "string", "string"], "category": "string" }'
         },
         {
           role: 'user',
