@@ -4,12 +4,14 @@ import { fetchNasaNews } from './nasa.js';
 import { fetchSpaceComNews } from './spacecom.js';
 import { fetchEsaNews } from './esa.js';
 import { fetchUniverseTodayNews } from './universetoday.js';
+import { fetchIsroNews } from './isro.js';
 
 const scrapers = {
   nasa: fetchNasaNews,
   space_com: fetchSpaceComNews,
   esa: fetchEsaNews,
-  universe_today: fetchUniverseTodayNews
+  universe_today: fetchUniverseTodayNews,
+  isro: fetchIsroNews
 };
 
 
