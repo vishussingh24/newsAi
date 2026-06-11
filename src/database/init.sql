@@ -43,6 +43,7 @@ INSERT INTO sources (name, url) VALUES
 ('nasa', 'https://www.nasa.gov/news-release/feed/'),
 ('space_com', 'https://www.space.com/feeds/all'),
 ('esa', 'https://www.esa.int/rssfeed/Our_Activities/Space_Science'),
-('universe_today', 'https://www.universetoday.com/feed/')
+('universe_today', 'https://www.universetoday.com/feed/'),
+('isro', 'https://www.isro.gov.in/Recent.html')
 ON CONFLICT (name) DO NOTHING;
 

@@ -33,6 +33,14 @@ async function checkDatabaseSchema() {
     } else {
       logger.info('Database tables verified. Schema matches specifications.');
     }
+
+    // Ensure all seed sources (specifically isro) exist in the database
+    await db.query(`
+      INSERT INTO sources (name, url) 
+      VALUES ('isro', 'https://www.isro.gov.in/Recent.html') 
+      ON CONFLICT (name) DO NOTHING;
+    `);
+    logger.info('Dynamically verified/inserted ISRO source seed.');
   } catch (error) {
     logger.error('Critical database initialization failure: %s', error.message);
     throw error;
